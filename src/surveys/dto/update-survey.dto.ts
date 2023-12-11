@@ -1,3 +1,6 @@
-import { CreateSurveyDto } from './create-survey.dto';
+import { Question } from '../../shared/interfaces/Question';
 
-export type UpdateSurveyDto = Omit<CreateSurveyDto, 'createdBy'>;
+export interface UpdateSurveyDto {
+  name: string;
+  questions: Question[];
+}
