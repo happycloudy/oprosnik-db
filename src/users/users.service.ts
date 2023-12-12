@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { User } from './user.schema';
-import { Model } from 'mongoose';
+import { Connection, Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { passwordHash } from './constants';
 import { Roles } from '../shared/types/Roles';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectConnection() private connection: Connection,
+  ) {
     this.userModel.findOne({ username: 'admin' }).then((res) => {
       if (!res) {
         this.create({
@@ -60,5 +64,117 @@ export class UsersService {
         },
       },
     );
+  }
+
+  async findSurveysByUser(id: string) {
+    const pipeline: mongoose.PipelineStage[] = [
+      {
+        $unwind: '$surveys',
+      },
+      {
+        $lookup: {
+          from: 'surveys',
+          let: {
+            id: { $toObjectId: '$surveys.id' },
+            surveys: '$surveys',
+          },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$id'] } } },
+            {
+              $replaceRoot: {
+                newRoot: { $mergeObjects: ['$$surveys', '$$ROOT'] },
+              },
+            },
+            {
+              $unset: '_id',
+            },
+          ],
+          as: 'surveys',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          username: { $first: '$username' },
+          items: { $push: { $first: '$surveys' } },
+        },
+      },
+    ];
+
+    if (id !== '0') {
+      pipeline.unshift({
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      });
+    }
+
+    return this.userModel.aggregate(pipeline);
+  }
+
+  async findSurveysByUserGrouped(id: string) {
+    const pipeline: mongoose.PipelineStage[] = [
+      {
+        $unwind: '$surveys',
+      },
+      {
+        $group: {
+          _id: '$surveys.id',
+          answers: {
+            $push: {
+              answers: '$surveys.answers',
+            },
+          },
+        },
+      },
+      {
+        $unwind: '$answers',
+      },
+      {
+        $project: {
+          answers: '$answers.answers',
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          answers: { $push: '$answers' },
+        },
+      },
+
+      {
+        $lookup: {
+          from: 'surveys',
+          let: {
+            id: { $toObjectId: '$_id' },
+            answers: '$answers',
+          },
+          as: 'survey',
+          pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$id'] } } }],
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [{ $arrayElemAt: ['$survey', 0] }, '$$ROOT'],
+          },
+        },
+      },
+      {
+        $project: {
+          survey: 0,
+        },
+      },
+    ];
+
+    if (id !== '0') {
+      pipeline.unshift({
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      });
+    }
+
+    return this.userModel.aggregate(pipeline);
   }
 }

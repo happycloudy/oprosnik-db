@@ -6,6 +6,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @Get('/surveys/grouped/:id')
+  findSurveysByUserGrouped(@Param('id') id: string) {
+    return this.usersService.findSurveysByUserGrouped(id);
+  }
+
+  @Get('/surveys/:id')
+  findSurveysByUser(@Param('id') id: string) {
+    return this.usersService.findSurveysByUser(id);
+  }
+
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);

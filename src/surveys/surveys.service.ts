@@ -19,7 +19,27 @@ export class SurveysService {
   }
 
   async findAll() {
-    return this.surveyModel.find();
+    return this.surveyModel.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          let: {
+            id: { $toObjectId: '$categoryId' },
+          },
+          as: 'category',
+          pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$id'] } } }],
+        },
+      },
+      {
+        $unset: 'categoryId',
+      },
+      {
+        $unwind: {
+          path: '$category',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
   }
 
   async deleteById(id: string) {

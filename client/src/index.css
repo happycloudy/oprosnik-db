@@ -11,6 +11,7 @@
 body {
     background: #151515;
     color: #fff;
+    overflow-x: hidden;
 }
 
 .centered {

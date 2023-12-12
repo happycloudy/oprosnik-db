@@ -15,6 +15,11 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesController {
   constructor(private categoriesService: CategoriesService) {}
 
+  @Get()
+  async findAll() {
+    return this.categoriesService.findAll();
+  }
+
   @Post()
   async create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);

@@ -14,6 +14,9 @@ export class Survey {
 
   @Prop()
   questions: Question[];
+
+  @Prop({ default: null })
+  categoryId: string;
 }
 
 export const SurveySchema = SchemaFactory.createForClass(Survey);

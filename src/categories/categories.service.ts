@@ -11,6 +11,10 @@ export class CategoriesService {
     @InjectModel(Category.name) private categoryModel: Model<Category>,
   ) {}
 
+  async findAll() {
+    return this.categoryModel.find();
+  }
+
   async findById(id: string) {
     return this.categoryModel.findById(id);
   }
