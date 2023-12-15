@@ -1,7 +1,7 @@
-import {client} from './client.js';
+import { client } from './client.js';
 
-const uri = '/surveys'
+const uri = '/surveys';
 
-export const fetchSurveys = async () => {
-	return client(uri, {})
-}
+export const fetchSurveys = async (token) => {
+  return client(uri, { token });
+};

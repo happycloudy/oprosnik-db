@@ -6,11 +6,8 @@ export type SurveyDocument = HydratedDocument<Survey>;
 
 @Schema()
 export class Survey {
-  @Prop()
+  @Prop({ index: true })
   name: string;
-
-  @Prop()
-  createdBy: string;
 
   @Prop()
   questions: Question[];
@@ -20,3 +17,5 @@ export class Survey {
 }
 
 export const SurveySchema = SchemaFactory.createForClass(Survey);
+
+SurveySchema.index({ name: 'text' });

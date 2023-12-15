@@ -12,10 +12,47 @@ export class SurveysService {
   constructor(
     @InjectModel(Survey.name) private surveyModel: Model<Survey>,
     private usersService: UsersService,
-  ) {}
+  ) {
+    // this.surveyModel.ensureIndexes({ name: 'text' });
+  }
 
   async findById(id: string) {
     return this.surveyModel.findById(id);
+  }
+
+  findByName(str: string) {
+    if (str) {
+      return this.surveyModel.aggregate([
+        {
+          $match: {
+            $text: {
+              $search: str,
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            let: {
+              id: { $toObjectId: '$categoryId' },
+            },
+            as: 'category',
+            pipeline: [{ $match: { $expr: { $eq: ['$_id', '$$id'] } } }],
+          },
+        },
+        {
+          $unset: 'categoryId',
+        },
+        {
+          $unwind: {
+            path: '$category',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]);
+    } else {
+      return this.surveyModel.find();
+    }
   }
 
   async findAll() {

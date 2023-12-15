@@ -16,14 +16,19 @@ import { SubmitSurveyDto } from './dto/submit-survey.dto';
 export class SurveysController {
   constructor(private surveysService: SurveysService) {}
 
-  @Get('')
-  async findAll() {
-    return this.surveysService.findAll();
-  }
-
   @Post()
   async create(@Body() dto: CreateSurveyDto) {
     return this.surveysService.create(dto);
+  }
+
+  @Get('/name/:str')
+  async findByName(@Param('str') str: string) {
+    return this.surveysService.findByName(str);
+  }
+
+  @Get('')
+  async findAll() {
+    return this.surveysService.findAll();
   }
 
   @Put('submit')

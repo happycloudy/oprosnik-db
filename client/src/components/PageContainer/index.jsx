@@ -19,7 +19,7 @@ const PageContainer = ({ children }) => {
     localStorage.setItem('token', `Bearer ${token}`);
     localStorage.setItem('userId', id);
     localStorage.setItem('role', role);
-    setAuthData({ token, id, role });
+    setAuthData({ token: `Bearer ${token}`, id, role });
   };
 
   return (
